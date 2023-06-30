@@ -20,15 +20,10 @@ const Root = () => {
 							<Link to="/info">Info</Link>
 						</li>
 						<li>
-							<Link to="/discord">Discord</Link>
-						</li>
-						<li>
-							<Link to="/geo">Geo</Link>
-						</li>
-						<li>
-							<a href={"https://twitter.com/Furmap_net"}>Twitter</a>
+							<a href={"https://twitter.com/furmap_"}>Twitter</a>
 						</li>
 					</ul>
+					<button className={"float-abs fl-top fl-right"} style={{ zIndex: 1000 }} onClick={() => { window.location.href = "/register"; }}>Register</button>
 				</nav>
 			</header>
 

@@ -84,7 +84,7 @@ const Map = () => {
 	return (
 		<>
 			<Suspense>
-				<MapContainer center={[21.2709003, -100.7189763]} zoom={5} scrollWheelZoom={false} style={{ height: "calc(100vh - 56px)" }}>
+				<MapContainer center={[21.2709003, -100.7189763]} zoom={5} scrollWheelZoom={true} style={{ height: "calc(100vh - 56px)" }}>
 					<TileLayer
 						attribution={'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
 						url={"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"}
@@ -92,7 +92,7 @@ const Map = () => {
 					<MarkerCluster markers={markers} />
 				</MapContainer>
 			</Suspense>
-			<button className={"float-abs fl-top fl-right"} style={{ zIndex: 1000 }} onClick={() => { window.location.href = "/register"; }}>Register</button>
+			
 		</>
 	);
 };

@@ -10,6 +10,8 @@ import Geo from "./geo";
 import Root from './root';
 import Confirm from './confirm';
 
+import './app.css'
+
 const routes = createBrowserRouter([
 	{
 		path: '/',
