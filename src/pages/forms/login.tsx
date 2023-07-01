@@ -1,23 +1,24 @@
 // LOGIN PAGE HERE
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from "./client";
+import { supabase } from "../../client";
+import Layout from '../../components/Layout'
 
-const Login = ({setToken}) => {
+const Login = ({ setToken }: { setToken: (token: any) => void }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
 
-  function handleChange(event) {
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      [event.target.name]: event.target.value
-    }));
-  }
+function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  setFormData(prevFormData => ({
+    ...prevFormData,
+    [event.target.name]: event.target.value
+  }));
+}
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -34,8 +35,8 @@ const Login = ({setToken}) => {
   }
 
   return (
-    <>
-      <h1>Iniciar sesión</h1>
+    <Layout title="Login">
+      <h3>Iniciar sesión</h3>
       <form onSubmit={handleSubmit}>
         <input
           placeholder="Correo electrónico"
@@ -53,7 +54,7 @@ const Login = ({setToken}) => {
         />
         <button type="submit">Iniciar sesión</button>
       </form>
-    </>
+    </Layout>
   );
 };
 

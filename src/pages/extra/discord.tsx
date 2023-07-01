@@ -1,6 +1,7 @@
+import Layout from '../../components/Layout';
 const Discord = () => {
 	return (
-		<div className={"margin"}>
+		<Layout title="Discord">
 			<h2>Discord Server</h2>
 			<div className={"row"}>
 				<div className={"col"}>
@@ -24,10 +25,10 @@ const Discord = () => {
 				</div>
 
 				<div className={"col"}>
-					<iframe title={"Discord server"} src="https://discord.com/widget?id=1124411618034458655&theme=dark" width="350" height="500" allowTransparency frameBorder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+					<iframe title={"Discord server"} src="https://discord.com/widget?id=1124411618034458655&theme=dark" width="350" height="500" frameBorder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 				</div>
 			</div>
-		</div>
+		</Layout>
 	);
 };
 

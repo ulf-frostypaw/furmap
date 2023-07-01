@@ -14,6 +14,7 @@ header{
 nav{
 	align-items: center;
     display: grid;
+    grid-auto-flow: column;
 }
 
 

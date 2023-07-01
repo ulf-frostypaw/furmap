@@ -3,7 +3,7 @@ import {
 	useState
 } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { supabase } from './supabaseClient';
+import { supabase } from '../client';
 import {
 	MapContainer,
 	TileLayer,
@@ -15,6 +15,8 @@ import markerImage from '/src/images/marker_small.png';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+import Layout from '../components/Layout';
 
 interface MarkerProps {
 	position: {
@@ -82,7 +84,7 @@ const Map = () => {
 			});
 	}, []);
 	return (
-		<>
+		<Layout title="Map">
 			<Suspense>
 				<MapContainer center={[21.2709003, -100.7189763]} zoom={5} scrollWheelZoom={true} style={{ height: "calc(100vh - 56px)" }}>
 					<TileLayer
@@ -92,8 +94,7 @@ const Map = () => {
 					<MarkerCluster markers={markers} />
 				</MapContainer>
 			</Suspense>
-			
-		</>
+		</Layout>
 	);
 };
 
