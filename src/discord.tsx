@@ -18,13 +18,13 @@ const Discord = () => {
 						<li>This server is mainly to discuss about furmap, although you are allowed to talk about anything !</li>
 						<li>You can invite your friends on it !</li>
 					</ul>
-					<button className={"accent"} onClick={() => { window.location.href = "https://discord.gg/fgjADKh"; }}>
+					<button className={"accent"} onClick={() => { window.location.href = "https://discord.gg/2NYhZrjSn6"; }}>
 						Join the server
 					</button>
 				</div>
 
 				<div className={"col"}>
-					<iframe title={"Discord server"} src="https://canary.discord.com/widget?id=684020556596510793&theme=dark" allowTransparency frameBorder={0} width={350} height={500} />
+					<iframe title={"Discord server"} src="https://discord.com/widget?id=1124411618034458655&theme=dark" width="350" height="500" allowTransparency frameBorder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
 				</div>
 			</div>
 		</div>

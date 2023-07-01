@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.scss';
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Map from './map';
 import Register from "./register";
+import Login from "./login";
 import Info from "./info";
 import Discord from "./discord";
 import Geo from "./geo";
@@ -12,41 +13,40 @@ import Confirm from './confirm';
 
 import './app.css'
 
-const routes = createBrowserRouter([
-	{
-		path: '/',
-		element: <Root />,
-		children: [
-			{
-				path: '/',
-				element: <Map />
-			},
-			{
-				path: '/register',
-				element: <Register />,
-			},
-			{
-				path: '/info',
-				element: <Info />,
-			},
-			{
-				path: '/discord',
-				element: <Discord />,
-			},
-			{
-				path: '/geo',
-				element: <Geo />,
-			},
-			{
-				path: '/confirm',
-				element: <Confirm />
-			}
-		]
-	},
-]);
+const Router = () =>{
+	const [token, setToken] = useState(null);
+
+	if (token) {
+	  sessionStorage.setItem('token', JSON.stringify(token));
+	}
+
+	useEffect(() => {
+	  const storedToken = sessionStorage.getItem('token');
+
+	  if (storedToken !== null) {
+	    let data = JSON.parse(storedToken);
+	    setToken(data);
+	  }
+	}, []);
+
+	return(
+		<BrowserRouter>
+			<>
+				<Routes>
+					<Route path='/' element={<Root />} />
+					<Route path='/register' element={<Register />} />
+					<Route path='/login' element={<Login setToken={setToken} />} />
+					<Route path='/info' element={<Info />} />
+					<Route path='/discord' element={<Discord />} />
+					<Route path='/geo' element={<Geo />} />			
+				</Routes>
+			</>
+		</BrowserRouter>
+	)
+}
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
 	<React.StrictMode>
-		<RouterProvider router={routes} />
+		<Router />
 	</React.StrictMode>
 );

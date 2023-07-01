@@ -15,3 +15,18 @@ nav{
 	align-items: center;
     display: grid;
 }
+
+
+/* GLOBAL STYLES */
+
+.btn{
+	bordar-radius: 5px;
+	width: 100%;
+
+}
+
+/*
+	 LOS BOTONES DE ACCIONES DEBEN SER DE COLOR VERDE
+	 LOS QUE SON SECUNDARIOS DE COLOR GRIS, ASÍ COMO LOS QUE ESTÁN POR DEFECTO.
+	 
+*/

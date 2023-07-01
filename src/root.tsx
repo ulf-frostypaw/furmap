@@ -1,7 +1,14 @@
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import markerSmall from '/src/images/marker_small.png';
 
 const Root = () => {
+	const token = sessionStorage.getItem('token');
+	const navigate = useNavigate()
+	function handleLogout(e){
+		e.preventDefault()
+		sessionStorage.removeItem('token');
+		navigate('/login')
+	}
 	return (
 		<>
 			<header>
@@ -20,10 +27,14 @@ const Root = () => {
 							<Link to="/info">Info</Link>
 						</li>
 						<li>
-							<a href={"https://twitter.com/furmap_"}>Twitter</a>
+							<Link to="/discord">Discord</Link>
+						</li>
+						<li>
+							<Link to={"https://twitter.com/furmap_"} target="_blank">Twitter</Link>
 						</li>
 					</ul>
-					<button className={"float-abs fl-top fl-right"} style={{ zIndex: 1000 }} onClick={() => { window.location.href = "/register"; }}>Register</button>
+					{token ? <Link to="#" onClick={handleLogout} className="btn">Cerrar sesión</Link> : <Link to="/register" className="btn">Register</Link> }
+					
 				</nav>
 			</header>
 
