@@ -1,41 +1,6 @@
 body {
   margin: 0;
   #root {
-    height: fit-content;
-    width: 100vw;
-
-    header {
-      top: 0;
-      height: 56px;
-      left: 0;
-      right: 0;
-      background-color: white;
-      z-index: 1;
-
-      nav ul {
-            display: flex;
-            align-items: center;
-
-        li {
-          list-style: none;
-          margin-right: 1rem;
-
-          h1 {
-            margin: 0;
-          }
-          img {
-            height: 30px;
-            width: 30px;
-          }
-          a {
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            color: #000;
-          }
-        }
-      }
-    }
 
     main {
       height: 100%;
