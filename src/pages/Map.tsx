@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faIdBadge } from "@fortawesome/free-solid-svg-icons";
 import Layout from "../components/Layout";
+import MarkerClusterGroup from "react-leaflet-markercluster";
 
 const customIcon = new L.Icon({
   iconUrl: import.meta.env.VITE_APP_URL + "/images/marker.png",
@@ -46,8 +47,8 @@ const Map: React.FC = () => {
   // map limits
   const bounds: [[number, number], [number, number]] = [
     [-90, -180], // Suroeste
-    [90, 180],   // Noreste
-];
+    [90, 180], // Noreste
+  ];
 
   return (
     <Layout title="Map">
@@ -64,46 +65,48 @@ const Map: React.FC = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {markers.map((marker) => (
-          <Marker
-            key={marker.user_token}
-            position={[marker.latitude, marker.longitude]}
-            icon={customIcon}
-          >
-            <Popup>
-              <div className="text-center">
-                <picture>
-                  <img
-                    src={marker.user_picture}
-                    alt={"User picture: " + marker.name}
-                    style={{
-                      aspectRatio: "1/1",
-                      maxWidth: "50px",
-                      borderRadius: "50%",
-                    }}
-                  />
-                </picture>
+        <MarkerClusterGroup>
+          {markers.map((marker) => (
+            <Marker
+              key={marker.user_token}
+              position={[marker.latitude, marker.longitude]}
+              icon={customIcon}
+            >
+              <Popup>
+                <div className="text-center">
+                  <picture>
+                    <img
+                      src={marker.user_picture}
+                      alt={"User picture: " + marker.name}
+                      style={{
+                        aspectRatio: "1/1",
+                        maxWidth: "50px",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  </picture>
 
-                <div>
-                  <span>{marker.name}</span>
                   <div>
-                    <Link
-                      to={
-                        import.meta.env.VITE_APP_URL +
-                        "/profile/" +
-                        marker.username
-                      }
-                      className="btn btn-primary"
-                      style={{ color: "#fff" }}
-                    >
-                      <FontAwesomeIcon icon={faIdBadge} /> View profile
-                    </Link>
+                    <span>{marker.name}</span>
+                    <div>
+                      <Link
+                        to={
+                          import.meta.env.VITE_APP_URL +
+                          "/profile/" +
+                          marker.username
+                        }
+                        className="btn btn-primary"
+                        style={{ color: "#fff" }}
+                      >
+                        <FontAwesomeIcon icon={faIdBadge} /> View profile
+                      </Link>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </Layout>
   );
