@@ -5,6 +5,9 @@ import { HelmetProvider } from "react-helmet-async";
 import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import 'leaflet/dist/leaflet.css'
+import 'react-leaflet-markercluster/styles'
+
 // === [PAGES] ===
 import Map from "./pages/Map";
 import User from "./pages/profile/User";
