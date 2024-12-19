@@ -12,6 +12,7 @@ import 'react-leaflet-markercluster/styles'
 import Map from "./pages/Map";
 import User from "./pages/profile/User";
 import Error404 from "./pages/Error404";
+import About from "./pages/About";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<Navigate to={'/map'} />} />
           <Route path="/map" element={<Map />} />
           <Route path="/profile/:username" element={<User />} />
+          <Route path="/about" element={<About />} />
 
           <Route path="*" element={<Error404 />} />
         </Routes>
