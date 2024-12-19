@@ -2,3 +2,29 @@
     margin: 0;
     box-sizing: border-box;
 }
+
+html, body, *{
+    font-family: "Nunito", sans-serif !important;
+}
+.logo{
+    text-decoration: none;
+    color: rgba(0,0,0,.9);
+}
+.nav-link{
+    color: rgba(0, 0, 0, .5);
+}
+
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, .2);
+    backdrop-filter: blur(5px);
+    z-index: 1040;
+}
+
+.furmapModal {
+    z-index: 1050;
+}

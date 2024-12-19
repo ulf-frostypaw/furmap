@@ -1,86 +1,112 @@
-import { useEffect } from "react"; 
+import React, { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faIdBadge } from "@fortawesome/free-solid-svg-icons";
 import Layout from "../components/Layout";
-import 'leaflet/dist/leaflet.css';
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
-import * as L from 'leaflet';
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-interface MapProps {
-    position: {
-        lng: number;
-        lat: number;
-    };
-    name: string;
-    _id: number;
+
+const customIcon = new L.Icon({
+  iconUrl: import.meta.env.VITE_APP_URL + "/images/marker.png",
+  iconSize: [28, 38],
+});
+
+interface MarkerData {
+  id: number;
+  user_token: string;
+  username: string;
+  name: string;
+  user_picture: string;
+  latitude: number;
+  longitude: number;
 }
 
-const mcg = L.markerClusterGroup({
-    showCoverageOnHover: true,
-    zoomToBoundsOnClick: true,
-    spiderfyOnMaxZoom: true,
-});
+const Map: React.FC = () => {
+  const [markers, setMarkers] = useState<MarkerData[]>([]);
 
-// Define un icono personalizado para los marcadores
-const markerIcon = new L.Icon({
-    iconUrl: './images/marker.png',
-    iconSize: [28, 38],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-});
+  useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const response = await fetch(
+          import.meta.env.VITE_API_URL + "/locations/fetch"
+        );
+        const data = await response.json();
+        setMarkers(data);
+      } catch (error) {
+        console.error("Error fetching markers:", error);
+      }
+    };
 
-const MarkerCluster = ({ markers }: { markers: MapProps[]; }) => {
-    const map = useMap();
+    fetchMarkers();
+  }, []);
 
-    useEffect(() => {
-        mcg.clearLayers();
-        markers.forEach(({ position, name }) => {
-            L.marker(new L.LatLng(position.lat, position.lng), {
-                icon: markerIcon // custom icon
-            })
-            .addTo(mcg)
-            .bindPopup(name);
-        });
+  const position: [number, number] = [0, 0]; /// center map
 
-        map.addLayer(mcg);
-    }, [markers, map]);
+  // map limits
+  const bounds: [[number, number], [number, number]] = [
+    [-90, -180], // Suroeste
+    [90, 180],   // Noreste
+];
 
-    return null;
+  return (
+    <Layout title="Map">
+      <MapContainer
+        center={position}
+        zoom={2}
+        style={{ height: "calc(100vh - 57px)", width: "100%" }}
+        maxZoom={18}
+        minZoom={2}
+        maxBounds={bounds}
+        maxBoundsViscosity={1.0}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {markers.map((marker) => (
+          <Marker
+            key={marker.user_token}
+            position={[marker.latitude, marker.longitude]}
+            icon={customIcon}
+          >
+            <Popup>
+              <div className="text-center">
+                <picture>
+                  <img
+                    src={marker.user_picture}
+                    alt={"User picture: " + marker.name}
+                    style={{
+                      aspectRatio: "1/1",
+                      maxWidth: "50px",
+                      borderRadius: "50%",
+                    }}
+                  />
+                </picture>
+
+                <div>
+                  <span>{marker.name}</span>
+                  <div>
+                    <Link
+                      to={
+                        import.meta.env.VITE_APP_URL +
+                        "/profile/" +
+                        marker.username
+                      }
+                      className="btn btn-primary"
+                      style={{ color: "#fff" }}
+                    >
+                      <FontAwesomeIcon icon={faIdBadge} /> View profile
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </Layout>
+  );
 };
 
-export default function Map() {
-    const markersUsers = [
-        {
-            position: { lng: -100.7189763, lat: 21.2709003 },
-            name: 'User 1',
-            _id: 1,
-        },
-        {
-            position: { lng: -100.7189763, lat: 22.2709003 },
-            name: 'User 2',
-            _id: 2,
-        },
-        {
-            position: { lng: -101.7189763, lat: 23.2709003 },
-            name: 'User 3',
-            _id: 3,
-        },
-        {
-            position: { lng: -99.7189763, lat: 31.2709003 },
-            name: 'User 4',
-            _id: 4,
-        },
-    ];
-
-    return (
-        <Layout title="Map">
-            <MapContainer center={[21.2709003, -100.7189763]} zoom={5} scrollWheelZoom={true} style={{ height: "calc(100vh - 56px)" }}>
-                <TileLayer
-                    attribution={'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
-                    url={"https://tile.openstreetmap.org/{z}/{x}/{y}.png"}
-                />
-                <MarkerCluster markers={markersUsers} />
-            </MapContainer>
-        </Layout>
-    );
-}
+export default Map;
