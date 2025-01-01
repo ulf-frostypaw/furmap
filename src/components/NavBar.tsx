@@ -2,7 +2,7 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { Button, Modal, Form } from "react-bootstrap";
+import { Button, Modal, Form, Alert } from "react-bootstrap";
 import {  Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -19,8 +19,10 @@ import { useState } from "react";
 } */
 
 const NavBar: React.FC = () => {
+  const [responseMessage, setResponseMessage] = useState({ variant: '', message: '' }) // backend response
   const location = useLocation();
   const [show, setShow] = useState(false);
+  const [messageShow, setMessageShow] = useState(false) // show alert
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -32,9 +34,8 @@ const NavBar: React.FC = () => {
 
     const username = usernameInput.value;
     const password = passwordInput.value;
-
-    console.log('Username:', username);
-    console.log('Password:', password);
+    setResponseMessage({variant: '', message: ''})
+    setMessageShow(false);
 
     try {
       const response = await fetch(import.meta.env.VITE_API_URL + '/users/auth', {
@@ -42,19 +43,40 @@ const NavBar: React.FC = () => {
           headers: {
               'Content-Type': 'application/json',
           },
+          credentials: "include",
           body: JSON.stringify({
               username: username,
               password: password,
           }),
       });
 
-      if (!response.ok) {
-          throw new Error('Error en la autenticación');
-      }
+      const data = await response.json();  
 
-      const data = await response.json();
-      console.log(data); // TODO: GUARDAR ESTOS DATOS EN SESION Y LOCALSTORAGE
-      // Aquí puedes manejar la respuesta, como redirigir al usuario o almacenar un token
+      if (!response.ok) {
+        let variant = 'primary';
+        if (data.message === 'error_all_fields_required') {
+            variant = 'warning';
+        } else if (
+            data.message === 'error_user_not_found' ||
+            data.message === 'error_invalid_credentials' ||
+            data.message === 'error_account_suspended'
+          ) {
+            variant = 'danger';
+        }
+        setResponseMessage({
+          variant: variant,
+          message: data.message
+        })
+        setMessageShow(true);
+        return;
+      }
+  
+      // RECARGAR PAGINA SI TODO FUNCIONA CORRECTAMENTE
+      if(data.message === "success_login"){
+        window.location.reload();
+        return;
+      }
+  
   } catch (error) {
       console.error('Error:', error);
   }
@@ -71,13 +93,14 @@ const NavBar: React.FC = () => {
         <Modal.Header closeButton>
           <Modal.Title>Welcome back!</Modal.Title>
         </Modal.Header>
+        {messageShow && <Alert variant={responseMessage.variant} dismissible onClose={() => setMessageShow(false)} ><strong>{responseMessage.message}</strong></Alert>}
         <Modal.Body>
           <Form method="POST">
               <Form.Group className="mb-3" controlId="username">
                 <Form.Label>Username or e-mail</Form.Label>
                 <Form.Control
-                  type="email"
-                  placeholder="user@furmap.xyz"
+                  type="text"
+                  placeholder="@username"
                   autoFocus
                   required
                 />
