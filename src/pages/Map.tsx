@@ -29,14 +29,20 @@ const Map: React.FC = () => {
   useEffect(() => {
     const fetchMarkers = async () => {
       try {
-        const response = await fetch(
-          import.meta.env.VITE_API_URL + "/locations/fetch"
-        );
+        const response = await fetch(import.meta.env.VITE_API_URL + "/locations/fetch");
+
+        // Verifica si la respuesta es 404
+        if (response.status === 404) {
+            console.error("No locations found.");
+            return; // Salir de la función si no hay locaciones
+        }
+
+        // Si la respuesta es exitosa, convierte a JSON
         const data = await response.json();
         setMarkers(data);
-      } catch (error) {
+    } catch (error) {
         console.error("Error fetching markers:", error);
-      }
+    }
     };
 
     fetchMarkers();
@@ -76,7 +82,7 @@ const Map: React.FC = () => {
                 <div className="text-center">
                   <picture>
                     <img
-                      src={marker.user_picture}
+                      src={import.meta.env.VITE_API_URL + "/storage/" + marker.user_picture}
                       alt={"User picture: " + marker.name}
                       style={{
                         aspectRatio: "1/1",
