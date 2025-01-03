@@ -13,6 +13,7 @@ import Map from "./pages/Map";
 import User from "./pages/profile/User";
 import Error404 from "./pages/Error404";
 import About from "./pages/About";
+import RegisterForm from "./pages/auth/RegisterForm";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -20,6 +21,8 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to={'/map'} />} />
+          <Route path="/register" element={<RegisterForm />} />
+
           <Route path="/map" element={<Map />} />
           <Route path="/profile/:username" element={<User />} />
           <Route path="/about" element={<About />} />
