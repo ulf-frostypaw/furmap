@@ -3,71 +3,225 @@ import Layout from "../../components/Layout";
 import { useState } from "react";
 import { Form, Button, Container, Row, Col, ProgressBar, Alert } from "react-bootstrap";
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { jwtDecode } from "jwt-decode";
 
+
+interface UserToken {
+    user_token: string;
+}
+interface FormUsername {
+    username: string;
+}
 const RegisterForm: React.FC = () => {
     const [position, setPosition] = useState<[number, number] | null>(null);
-    const [step, setStep] = useState<number>(1);
-    const [showAlert, setShowAlert] = useState(false); // Estado para mostrar la alerta
-    const [formData, setFormData] = useState<{
-        name: string;
-        email: string;
-        password: string;
-    }>({
+    const [alerts, setAlerts] = useState<{
+        id: number;
+        variant: string;
+        message: string;
+        show: boolean;
+    }[]>([]);
+    
+    const [formData, setFormData] = useState({
         name: '',
         email: '',
         password: '',
     });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target as HTMLInputElement;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+    const [formUsername, setFormUsername] = useState<FormUsername>({
+        username: '',
+    });
+
+const [step, setStep] = useState(1);
+
+const handleShowAlert = (variant: string, message: string) => {
+    const newAlert = {
+        id: Date.now(),
+        variant,
+        message,
+        show: true,
+    };
+    setAlerts((prevAlerts) => [...prevAlerts, newAlert]);
+    // esconde la alert luego de 5 segundos
+    setTimeout(() => {
+        setAlerts((prevAlerts) =>
+            prevAlerts.map((alert) =>
+                alert.id === newAlert.id ? { ...alert, show: false } : alert
+            )
+        );
+    }, 5000); // 5000 ms = 5 segundos
+};
+    
+    const handleHideAlert = (id: number) => {
+    setAlerts((prevAlerts) =>
+        prevAlerts.map((alert) => (alert.id === id ? { ...alert, show: false } : alert))
+    );
+    };
+    
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     };
 
-    const nextStep = async () => {
-        // VERIFICA SI LOS CAMPOS ESTAN VACIOS  
-        if (!formData.name || !formData.email || !formData.password) {
-            setShowAlert(true);
+    const handleSelectUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormUsername({ ...formUsername, [name]: value });
+    };
+
+const nextStep = async () => {
+    // register user
+    if(step === 1){
+        if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
+            handleShowAlert('warning', 'warning_all_fields_required');
             return;
         }
-    // TODO: VERIFICAR SI EL NOMBRE DE USUARIO YA ESTA REGISTRADO O NO
-        /* try {
-            const response = await fetch(import.meta.env.VITE_API_URL + "/auth/validate", {
+        try {
+            const response = await fetch(import.meta.env.VITE_API_URL + "/users/register", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email: formData.email }),
+                credentials: "include",
+                body: JSON.stringify({
+                    name: formData.name,
+                    email: formData.email,
+                    password: formData.password
+                }),
             });
     
-            if (!response.ok) {
-                throw new Error("El correo ya está registrado.");
-            }
+            const data = await response.json()
     
-            setShowAlert(false);
-            setStep(step + 1);
+            if (!response.ok) {
+                handleShowAlert('danger', data.message);
+            } else {
+                //handleShowAlert('success', data.message);
+                setStep(step + 1);
+            }
         } catch (error) {
-            console.error(error);
-            alert("Hubo un problema con la validación.");
-        } */
-        setShowAlert(false);
-        setStep(step + 1);
-    };
+            console.log(error)
+            handleShowAlert('danger', 'Network error. Please try again later.');
+        }
+    }else if(step === 2){
+        /// register location. puede ser omitido
+        if (!position) {
+            setStep(3)
+            return;
+        }
 
-    const skipStep = () => {
-        setStep(step + 1);
-    };
+        try {
+            const response = await fetch(import.meta.env.VITE_API_URL + "/users/auth/validate", {
+                method: "GET",
+                credentials: "include",
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                // decodifica la cookie
+                const user_token_cookie = jwtDecode<UserToken>(data.token);        
+                try {
 
-    const prevStep = () => {
-        setStep(step - 1);
-    };
+                    // registra la ubicacion
+                    const locationResponse = await fetch(import.meta.env.VITE_API_URL + "/locations/create", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            user_token: user_token_cookie.user_token,
+                            latitude: position[0],
+                            longitude: position[1]
+                        })
+                    });
+        
+                    const locationData = await locationResponse.json();
 
-    const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
-        console.log("Form submitted:", formData, position);
-    };
+                    if (!locationResponse.ok) {
+                        if (locationData.message === "error_location_already_registered") {
+                            handleShowAlert('warning', locationData.message);
+                        } else {
+                            handleShowAlert('danger', locationData.message);
+                        }
+                    } else {
+                        // sigueinte paso si se registra correctamente
+                        setStep(3);
+
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    handleShowAlert('danger', 'Network error. Please try again later.');
+                }
+            } else {
+                // recargar la pagina sino redirige a login
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+            
+        
+    }else if(step === 3){
+        if(!formUsername.username.trim()){
+            handleShowAlert('warning', 'warning_all_fields_required');
+            return;
+        }
+
+        try {
+            const response = await fetch(import.meta.env.VITE_API_URL + "/users/auth/validate", {
+                method: "GET",
+                credentials: "include",
+            });
+            const data = await response.json();
+            
+            if (response.ok) {
+                // decodifica la cookie
+                const user_token_cookie = jwtDecode<UserToken>(data.token);   
+                try {
+                    const response = await fetch(import.meta.env.VITE_API_URL + "/users/update-username", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        credentials: "include",
+                        body: JSON.stringify({
+                            user_token: user_token_cookie,
+                            username: formUsername.username
+                        }),
+                    });
+        
+                    const data = await response.json();
+                    if(!response.ok){
+                        handleShowAlert("danger", data.message)
+                        return;
+                    }else{
+                        window.location.href = import.meta.env.VITE_APP_URL + "/map"
+                    }
+                } catch (error) {
+                    console.log(error)
+                    handleShowAlert('danger', 'Network error. Please try again later.');
+                }
+
+
+            } else {
+                // recargar la pagina sino redirige a login
+                window.location.href = import.meta.env.VITE_APP_URL + "/map";
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+    
+};
+
+const skipStep = () => {
+    if (step === 2) {
+        setStep(3);
+    }else if (step === 3) {
+        setStep(3);
+    }
+    
+
+    setStep(step + 1)
+};
+const prevStep = () => setStep(step - 1);
 
     // Leaflet Config
     const MapClickHandler = () => {
@@ -75,7 +229,6 @@ const RegisterForm: React.FC = () => {
             click: (event) => {
                 const { lat, lng } = event.latlng;
                 setPosition([lat, lng]);
-                console.log(`Marker position: ${lat}, ${lng}`);
             },
         });
         return null;
@@ -85,7 +238,6 @@ const RegisterForm: React.FC = () => {
         const marker = event.target as L.Marker;
         const { lat, lng } = marker.getLatLng();
         setPosition([lat, lng]);
-        console.log(`Marker position: ${lat}, ${lng}`);
     };
 
     const customIcon = new L.Icon({
@@ -94,21 +246,21 @@ const RegisterForm: React.FC = () => {
     });
 
     return (
-        <Layout title="Login">
+        <Layout title="Register">
             <Container>
                 <Row className="justify-content-center mt-5">
                     <Col md={6}>
                         <ProgressBar now={(step / 3) * 100} label={`${step}/3 Steps`} className="mb-4" />
+                            {alerts.map((alert) =>
+                                alert.show ? (
+                                <Alert key={alert.id} variant={alert.variant} onClose={() => handleHideAlert(alert.id)} dismissible>
+                                    {alert.message}
+                                </Alert>
+                                ) : null
+                            )}
                         {step === 1 && (
                             <>
                                 <h1 className="text-center">Signup to Furmap</h1>
-                                
-                                {showAlert && (
-                                    <Alert variant="danger" onClose={() => setShowAlert(false)} dismissible>
-                                        error_all_fields_requierd
-                                    </Alert>
-                                )}
-                                
                                 <Form>
                                     <Form.Group className="mb-3" controlId="formName">
                                         <Form.Label>Name</Form.Label>
@@ -187,7 +339,7 @@ const RegisterForm: React.FC = () => {
                                     <small className="text-muted">Your location doesn't need to be exact; it will be adjusted to a maximum of 1 km.</small>
                                 </div>
 
-                                <Button variant="secondary" onClick={prevStep} className="me-2">
+                                <Button variant="secondary" disabled={step === 2 ? true : false} onClick={prevStep} className="me-2">
                                     Back
                                 </Button>
                                 <Button variant="warning" onClick={skipStep} className="me-2">
@@ -202,13 +354,26 @@ const RegisterForm: React.FC = () => {
                         {step === 3 && (
                             <>
                                 <h1 className="text-center">Select your username</h1>
+                                <Form>
+                                    <Form.Group className="mb-3" controlId="formName">
+                                        <Form.Label>Username</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter your username"
+                                            name="username"
+                                            value={formUsername.username}
+                                            onChange={handleSelectUsername}
+                                        />
+                                    </Form.Group>
 
-                                <Button variant="secondary" onClick={prevStep} className="me-2">
-                                    Back
-                                </Button>
-                                <Button variant="success" onClick={handleSubmit}>
-                                    Register
-                                </Button>
+                                    <Button variant="secondary" disabled={step === 3 ? true : false} onClick={prevStep} className="me-2">
+                                        Back
+                                    </Button>
+                                    <Button variant="success" onClick={nextStep}>
+                                        Finish Registration
+                                    </Button>
+                                </Form>
+                                
                             </>
                         )}
                     </Col>
