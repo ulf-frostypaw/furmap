@@ -15,21 +15,25 @@ import Error404 from "./pages/Error404";
 import About from "./pages/About";
 import RegisterForm from "./pages/auth/RegisterForm";
 
+import AuthProvider from "./context/AuthContext";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <HelmetProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to={'/map'} />} />
-          <Route path="/register" element={<RegisterForm />} />
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to={'/map'} />} />
+            <Route path="/register" element={<RegisterForm />} />
 
-          <Route path="/map" element={<Map />} />
-          <Route path="/profile/:username" element={<User />} />
-          <Route path="/about" element={<About />} />
+            <Route path="/map" element={<Map />} />
+            <Route path="/profile/:username" element={<User />} />
+            <Route path="/about" element={<About />} />
 
-          <Route path="*" element={<Error404 />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Error404 />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </HelmetProvider>
   </StrictMode>
 );

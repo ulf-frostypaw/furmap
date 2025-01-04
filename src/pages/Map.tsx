@@ -60,7 +60,7 @@ const Map: React.FC = () => {
     <Layout title="Map">
       <MapContainer
         center={position}
-        zoom={2}
+        zoom={3}
         style={{ height: "calc(100vh - 57px)", width: "100%" }}
         maxZoom={18}
         minZoom={2}
@@ -82,12 +82,13 @@ const Map: React.FC = () => {
                 <div className="text-center">
                   <picture>
                     <img
-                      src={import.meta.env.VITE_API_URL + "/storage/" + marker.user_picture}
+                      src={marker.user_picture != null ? import.meta.env.VITE_API_URL + "/storage/" + marker.user_picture : import.meta.env.VITE_APP_URL + "/d-user.png"}
                       alt={"User picture: " + marker.name}
                       style={{
                         aspectRatio: "1/1",
                         maxWidth: "50px",
                         borderRadius: "50%",
+                        backgroundColor: "#eee"
                       }}
                     />
                   </picture>
@@ -95,11 +96,9 @@ const Map: React.FC = () => {
                   <div>
                     <span>{marker.name}</span>
                     <div>
-                      <Link
+                    <Link
                         to={
-                          import.meta.env.VITE_APP_URL +
-                          "/profile/" +
-                          marker.username
+                          import.meta.env.VITE_APP_URL + "/profile/" + (marker.username != null ? (marker.username != null ? marker.username : marker.user_token) : marker.user_token)
                         }
                         className="btn btn-primary"
                         style={{ color: "#fff" }}
