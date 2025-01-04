@@ -173,16 +173,16 @@ const nextStep = async () => {
             
             if (response.ok) {
                 // decodifica la cookie
-                const user_token_cookie = jwtDecode<UserToken>(data.token);   
+                const user_token_cookie = jwtDecode<UserToken>(data.token);
                 try {
-                    const response = await fetch(import.meta.env.VITE_API_URL + "/users/update-username", {
-                        method: "POST",
+                    const response = await fetch(import.meta.env.VITE_API_URL + "/users/update/username", {
+                        method: "PATCH",
                         headers: {
                             "Content-Type": "application/json",
                         },
                         credentials: "include",
                         body: JSON.stringify({
-                            user_token: user_token_cookie,
+                            user_token: user_token_cookie.user_token,
                             username: formUsername.username
                         }),
                     });
@@ -192,6 +192,7 @@ const nextStep = async () => {
                         handleShowAlert("danger", data.message)
                         return;
                     }else{
+                        // console.log(data.message)
                         window.location.href = import.meta.env.VITE_APP_URL + "/map"
                     }
                 } catch (error) {
