@@ -2,36 +2,48 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
-import { Button, Modal, Form, Alert } from "react-bootstrap";
+import { Button, Modal, Form, Alert, Dropdown } from "react-bootstrap";
 import { Link, useLocation } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faCog,
   faInfoCircle,
   faMapLocationDot,
   faPaw,
+  faPowerOff,
   faRightToBracket,
   faRss,
+  faUser,
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
+import { jwtDecode } from "jwt-decode";
 
-/* interface NavbarProps{
-  location: string;
-} */
+interface DecodedToken {
+  user_token?: string;
+  username?: string;
+  user_picture?: string;
+}
 
 const NavBar: React.FC = () => {
+  const isLogged = useContext(AuthContext);
+  
+  // @ts-expect-error: Token decoding may fail if the token is malformed or missing
+  const decoded: DecodedToken | null = isLogged?.userDataLogged?.token ? jwtDecode<DecodedToken>(isLogged.userDataLogged.token) : null;
+
   const [responseMessage, setResponseMessage] = useState({
     variant: "",
     message: "",
-  }); // backend response
+  });
   const location = useLocation();
   const [show, setShow] = useState(false);
-  const [messageShow, setMessageShow] = useState(false); // show alert
+  const [messageShow, setMessageShow] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  // TRY LOGIN
+  // Manejo del formulario de inicio de sesión
   const handleSubmitLoginForm = async () => {
     const usernameInput = document.getElementById(
       "username"
@@ -54,10 +66,7 @@ const NavBar: React.FC = () => {
             "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            username: username,
-            password: password,
-          }),
+          body: JSON.stringify({ username, password }),
         }
       );
 
@@ -74,23 +83,37 @@ const NavBar: React.FC = () => {
         ) {
           variant = "danger";
         }
-        setResponseMessage({
-          variant: variant,
-          message: data.message,
-        });
+        setResponseMessage({ variant, message: data.message });
         setMessageShow(true);
         return;
       }
 
-      // RECARGAR PAGINA SI TODO FUNCIONA CORRECTAMENTE
       if (data.message === "success_login") {
         window.location.reload();
-        return;
       }
     } catch (error) {
       console.error("Error:", error);
     }
   };
+
+  const handleLogOut = async () => {
+    
+    try {
+      const response = await fetch(import.meta.env.VITE_API_URL + '/users/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if(response.ok){
+        window.location.href = import.meta.env.VITE_APP_URL + '/'
+      }
+
+    } catch (error) {
+      console.log("Error: " + error)
+      
+    }
+    
+  }
   return (
     <>
       <Modal
@@ -181,19 +204,70 @@ const NavBar: React.FC = () => {
                 </NavDropdown.Item>
               </NavDropdown>
             </Nav>
-            <Nav>
-              <Nav.Link
-                as={Link}
-                to="/register"
-                className={location.pathname === "/register" ? "active" : "" + "text-primary"}
-                style={{textDecoration: "underline"}}
+            {isLogged?.isAuthenticated === true ? (
+              <NavDropdown
+                title={
+                  <span>
+                    <img
+                      src={
+                        decoded?.user_picture
+                          ? `${import.meta.env.VITE_API_URL}/storage/${decoded.user_picture}`
+                          : `${import.meta.env.VITE_APP_URL}/d-user.png`
+                      }
+                      alt="user_picture"
+                      style={{
+                        maxWidth: "40px",
+                        aspectRatio: "1/1",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  </span>
+                }
+                id="collapsible-nav-dropdown"
+                className="custom-dropdown"
               >
-                <FontAwesomeIcon icon={faUserPlus} /> Add your location!
-              </Nav.Link>
-              <Button variant="success" onClick={handleShow}>
-                <FontAwesomeIcon icon={faRightToBracket} /> Login
-              </Button>
-            </Nav>
+                <NavDropdown.Item
+                  as={Link}
+                  to={
+                    import.meta.env.VITE_APP_URL +
+                    "/profile/" +
+                    (decoded?.username || decoded?.user_token || "")
+                  }
+                >
+                  <FontAwesomeIcon icon={faUser} /> My profile
+                </NavDropdown.Item>
+                <NavDropdown.Item
+                  as={Link}
+                  to={import.meta.env.VITE_APP_URL + "/settings"}
+                >
+                  <FontAwesomeIcon icon={faCog} /> Settings
+                </NavDropdown.Item>
+                <Dropdown.Divider />
+                <NavDropdown.Item onClick={handleLogOut}>
+                  <span className="text-danger">
+                    <FontAwesomeIcon icon={faPowerOff} /> Logout
+                  </span>
+                </NavDropdown.Item>
+              </NavDropdown>
+            ) : (
+              // Si no está autenticado, muestra el login y el enlace de registro
+              <Nav>
+                <Nav.Link
+                  as={Link}
+                  to="/register"
+                  className={
+                    location.pathname === "/register" ? "active" : "" + " text-primary"
+                  }
+                  style={{ textDecoration: "underline" }}
+                >
+                  <FontAwesomeIcon icon={faUserPlus} /> Add your location!
+                </Nav.Link>
+                <Button variant="success" onClick={handleShow}>
+                  <FontAwesomeIcon icon={faRightToBracket} /> Login
+                </Button>
+              </Nav>
+            )}
+
           </Navbar.Collapse>
         </Container>
       </Navbar>
