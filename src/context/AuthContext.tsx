@@ -1,49 +1,65 @@
 import React, { createContext, ReactNode, useEffect, useState } from "react";
-import { jwtDecode } from "jwt-decode";
 
-export const AuthContext = createContext<{ isAuthenticated: boolean } | null>(
-    null
-);
+export const AuthContext = createContext<{
+    isAuthenticated: boolean;
+    userDataLogged: string;
+} | null>(null);
 
 interface AuthProps {
     children: ReactNode;
 }
 
 const AuthProvider: React.FC<AuthProps> = ({ children }) => {
-const [isAuthenticated, setIsAuthenticated] = useState(false);
+const [authState, setAuthState] = useState<{
+        isAuthenticated: boolean;
+        userDataLogged: string;
+    }>({
+        isAuthenticated: false,
+        userDataLogged: "",
+});
 
   // Validar la sesión
 useEffect(() => {
     const validateSession = async () => {
+    if (authState.isAuthenticated) return;
         try {
-        const response = await fetch(import.meta.env.VITE_API_URL + "/users/auth/validate", {
-            credentials: "include", // Incluye cookies
-        });
-
+            const response = await fetch(import.meta.env.VITE_API_URL + "/users/auth/validate", {
+                credentials: "include",
+            });
             if (response.ok) {
-                const data = await response.json();
-                console.log(JSON.stringify(jwtDecode(data.token)))
-                setIsAuthenticated(true);
+                const data = response.status !== 204 ? await response.json() : null;
+                if(data.message !== "not_logged"){
+                    setAuthState({
+                        isAuthenticated: true,
+                        userDataLogged: data || "",
+                    });
+                }else{
+                    setAuthState({
+                        isAuthenticated: false,
+                        userDataLogged: "",
+                    });
+                }
             } else {
-                setIsAuthenticated(false);
+                setAuthState({
+                    isAuthenticated: false,
+                    userDataLogged: "",
+                });
             }
-
         } catch (error) {
-        console.error("error_invalid_session", error);
-        setIsAuthenticated(false);
+            console.error("Error durante la validación de sesión", error);
+            setAuthState({
+                isAuthenticated: false,
+                userDataLogged: "",
+            });
         }
+    
     };
 
-validateSession();
-}, []);
-
-  // Redirige si no hay sesión
-if (!isAuthenticated) {
-    return <p>Redireccionando a la página de login...</p>;
-}
+    validateSession();
+  }, [authState.isAuthenticated]); // Solo vuelve a validar si cambia el estado de autenticación
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated }}>
+        <AuthContext.Provider value={{ ...authState }}>
             {children}
         </AuthContext.Provider>
     );
