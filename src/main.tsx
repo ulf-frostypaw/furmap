@@ -15,6 +15,7 @@ import About from "./pages/About";
 import RegisterForm from "./pages/auth/RegisterForm";
 
 import AuthProvider from "./context/AuthContext";
+import SettingsPage from "./pages/settings/General";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -29,6 +30,7 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/profile/:username" element={<User />} />
             <Route path="/about" element={<About />} />
 
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<Error404 />} />
           </Routes>
         </BrowserRouter>
